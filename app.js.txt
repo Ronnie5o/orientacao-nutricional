@@ -1,0 +1,404 @@
+import React, { useState } from 'react';
+import { Calculator, Utensils, Apple, Droplet, Clock, AlertCircle } from 'lucide-react';
+
+export default function SeniorAthleteDiet() {
+  const [weight, setWeight] = useState('');
+  const [height, setHeight] = useState('');
+  const [age, setAge] = useState('');
+  const [gender, setGender] = useState('male');
+  const [activityLevel, setActivityLevel] = useState('moderate');
+  const [sport, setSport] = useState('running');
+  const [profile, setProfile] = useState('athlete');
+  const [results, setResults] = useState(null);
+
+  const calculateNeeds = () => {
+    const w = parseFloat(weight);
+    const h = parseFloat(height);
+    const a = parseFloat(age);
+
+    if (!w || !h || !a) return;
+
+    // Cálculo de TMB usando fórmula de Harris-Benedict
+    let bmr;
+    if (gender === 'male') {
+      bmr = 88.362 + (13.397 * w) + (4.799 * h) - (5.677 * a);
+    } else {
+      bmr = 447.593 + (9.247 * w) + (3.098 * h) - (4.330 * a);
+    }
+
+    // Fator de atividade ajustado para diferentes perfis
+    const activityFactors = {
+      sedentary: 1.2,
+      light: profile === 'athlete' ? 1.5 : 1.375,
+      moderate: profile === 'athlete' ? 1.7 : 1.55,
+      intense: profile === 'athlete' ? 1.9 : 1.725,
+      veryIntense: 1.9
+    };
+
+    const totalCalories = Math.round(bmr * activityFactors[activityLevel]);
+
+    // Necessidades de macronutrientes ajustadas por perfil
+    let protein, carbs, fats;
+    
+    if (profile === 'athlete') {
+      protein = (w * 1.4).toFixed(1); // 1.2-1.6g/kg para atletas
+      carbs = ((totalCalories * 0.50) / 4).toFixed(1); // 50% das calorias
+      fats = ((totalCalories * 0.30) / 9).toFixed(1); // 30% das calorias
+    } else if (profile === 'active') {
+      protein = (w * 1.0).toFixed(1); // 1.0g/kg para pessoas ativas
+      carbs = ((totalCalories * 0.45) / 4).toFixed(1); // 45% das calorias
+      fats = ((totalCalories * 0.30) / 9).toFixed(1); // 30% das calorias
+    } else {
+      protein = (w * 0.8).toFixed(1); // 0.8g/kg para sedentários
+      carbs = ((totalCalories * 0.50) / 4).toFixed(1); // 50% das calorias
+      fats = ((totalCalories * 0.30) / 9).toFixed(1); // 30% das calorias
+    }
+    
+    const water = (w * 0.035).toFixed(1); // 35ml/kg
+
+    setResults({
+      calories: totalCalories,
+      protein,
+      carbs,
+      fats,
+      water
+    });
+  };
+
+  const getMealPlan = () => {
+    if (!results) return null;
+
+    const athletePlans = {
+      running: {
+        breakfast: ['Aveia com frutas vermelhas e nozes', 'Ovos mexidos com abacate', 'Iogurte grego com granola'],
+        lunch: ['Salmão grelhado com batata-doce e brócolis', 'Peito de frango com arroz integral e salada', 'Carne magra com quinoa e legumes'],
+        snack: ['Banana com pasta de amendoim', 'Mix de castanhas e frutas secas', 'Smoothie de proteína com frutas'],
+        dinner: ['Peixe branco com legumes assados', 'Frango grelhado com salada verde', 'Omelete com vegetais']
+      },
+      swimming: {
+        breakfast: ['Panquecas de aveia com mel', 'Torradas integrais com queijo branco', 'Mingau de aveia com frutas'],
+        lunch: ['Atum com batata e vegetais', 'Frango com macarrão integral', 'Carne magra com arroz e feijão'],
+        snack: ['Frutas com iogurte', 'Sanduíche natural', 'Barra de cereais e fruta'],
+        dinner: ['Sopa de legumes com frango', 'Salada completa com atum', 'Legumes grelhados com tofu']
+      },
+      cycling: {
+        breakfast: ['Pão integral com queijo e suco', 'Tapioca com frango desfiado', 'Vitamina de frutas com aveia'],
+        lunch: ['Massa integral com molho de tomate e carne', 'Risoto de frango com legumes', 'Arroz com feijão e bife magro'],
+        snack: ['Pão com pasta de amendoim', 'Frutas desidratadas', 'Iogurte com mel'],
+        dinner: ['Sopa de legumes', 'Salada com grão-de-bico', 'Peixe grelhado com purê']
+      }
+    };
+
+    const generalPlan = {
+      balanced: {
+        breakfast: ['Pão integral com ovo e frutas', 'Iogurte com granola e mel', 'Tapioca com queijo branco'],
+        lunch: ['Arroz, feijão, frango grelhado e salada', 'Macarrão integral com legumes e carne moída', 'Peixe assado com batata e vegetais'],
+        snack: ['Frutas da estação', 'Castanhas e frutas secas', 'Pão integral com queijo'],
+        dinner: ['Sopa de legumes', 'Omelete com salada', 'Frango com legumes cozidos']
+      },
+      weightLoss: {
+        breakfast: ['Omelete de claras com vegetais', 'Iogurte natural com frutas', 'Tapioca com queijo cottage'],
+        lunch: ['Salada com frango grelhado', 'Peixe com legumes no vapor', 'Carne magra com salada abundante'],
+        snack: ['Frutas frescas', 'Cenoura com húmus', 'Iogurte natural'],
+        dinner: ['Sopa de legumes', 'Salada com atum', 'Omelete com cogumelos']
+      },
+      maintenance: {
+        breakfast: ['Pão integral com requeijão e frutas', 'Mingau de aveia', 'Panqueca de banana com aveia'],
+        lunch: ['Arroz integral, feijão, carne e salada', 'Macarrão com frango e vegetais', 'Peixe com batata-doce'],
+        snack: ['Mix de oleaginosas', 'Vitamina de frutas', 'Barra de cereais'],
+        dinner: ['Risoto de frango', 'Sopa substanciosa', 'Omelete com queijo e salada']
+      }
+    };
+
+    if (profile === 'athlete') {
+      return athletePlans[sport];
+    } else {
+      return generalPlan[profile === 'active' ? 'maintenance' : 'balanced'];
+    }
+  };
+
+  const mealPlan = getMealPlan();
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 p-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
+          <div className="flex items-center gap-3 mb-6">
+            <Utensils className="w-10 h-10 text-green-600" />
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800">Orientação Nutricional</h1>
+              <p className="text-gray-600">Para todas as idades e estilos de vida</p>
+            </div>
+          </div>
+
+          <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-blue-900">
+                Este app fornece orientações gerais. Consulte um nutricionista esportivo para um plano personalizado.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Perfil</label>
+              <select
+                value={profile}
+                onChange={(e) => setProfile(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              >
+                <option value="sedentary">Sedentário (pouco ou nenhum exercício)</option>
+                <option value="active">Ativo (exercícios leves a moderados)</option>
+                <option value="athlete">Atleta (treinos regulares)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Sexo</label>
+              <select
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              >
+                <option value="male">Masculino</option>
+                <option value="female">Feminino</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Peso (kg)</label>
+              <input
+                type="number"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                placeholder="Ex: 75"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Altura (cm)</label>
+              <input
+                type="number"
+                value={height}
+                onChange={(e) => setHeight(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                placeholder="Ex: 170"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Idade</label>
+              <input
+                type="number"
+                value={age}
+                onChange={(e) => setAge(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                placeholder="Ex: 55"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Nível de Atividade</label>
+              <select
+                value={activityLevel}
+                onChange={(e) => setActivityLevel(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              >
+                {profile === 'sedentary' && (
+                  <>
+                    <option value="sedentary">Sedentário (trabalho de escritório)</option>
+                    <option value="light">Levemente ativo (caminhadas ocasionais)</option>
+                  </>
+                )}
+                {profile === 'active' && (
+                  <>
+                    <option value="light">Leve (1-3x/semana)</option>
+                    <option value="moderate">Moderado (3-5x/semana)</option>
+                  </>
+                )}
+                {profile === 'athlete' && (
+                  <>
+                    <option value="light">Leve (3-4x/semana)</option>
+                    <option value="moderate">Moderado (5-6x/semana)</option>
+                    <option value="intense">Intenso (diário)</option>
+                  </>
+                )}
+              </select>
+            </div>
+
+            {profile === 'athlete' && (
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Esporte Principal</label>
+                <select
+                  value={sport}
+                  onChange={(e) => setSport(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                >
+                  <option value="running">Corrida</option>
+                  <option value="swimming">Natação</option>
+                  <option value="cycling">Ciclismo</option>
+                </select>
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={calculateNeeds}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+          >
+            <Calculator className="w-5 h-5" />
+            Calcular Necessidades Nutricionais
+          </button>
+        </div>
+
+        {results && (
+          <>
+            <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">Suas Necessidades Diárias</h2>
+              
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="bg-orange-50 p-6 rounded-xl border-2 border-orange-200">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Calculator className="w-6 h-6 text-orange-600" />
+                    <h3 className="font-semibold text-gray-700">Calorias</h3>
+                  </div>
+                  <p className="text-3xl font-bold text-orange-600">{results.calories}</p>
+                  <p className="text-sm text-gray-600 mt-1">kcal/dia</p>
+                </div>
+
+                <div className="bg-red-50 p-6 rounded-xl border-2 border-red-200">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Apple className="w-6 h-6 text-red-600" />
+                    <h3 className="font-semibold text-gray-700">Proteínas</h3>
+                  </div>
+                  <p className="text-3xl font-bold text-red-600">{results.protein}g</p>
+                  <p className="text-sm text-gray-600 mt-1">por dia</p>
+                </div>
+
+                <div className="bg-yellow-50 p-6 rounded-xl border-2 border-yellow-200">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Utensils className="w-6 h-6 text-yellow-600" />
+                    <h3 className="font-semibold text-gray-700">Carboidratos</h3>
+                  </div>
+                  <p className="text-3xl font-bold text-yellow-600">{results.carbs}g</p>
+                  <p className="text-sm text-gray-600 mt-1">por dia</p>
+                </div>
+
+                <div className="bg-purple-50 p-6 rounded-xl border-2 border-purple-200">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Droplet className="w-6 h-6 text-purple-600" />
+                    <h3 className="font-semibold text-gray-700">Gorduras</h3>
+                  </div>
+                  <p className="text-3xl font-bold text-purple-600">{results.fats}g</p>
+                  <p className="text-sm text-gray-600 mt-1">por dia</p>
+                </div>
+
+                <div className="bg-blue-50 p-6 rounded-xl border-2 border-blue-200">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Droplet className="w-6 h-6 text-blue-600" />
+                    <h3 className="font-semibold text-gray-700">Água</h3>
+                  </div>
+                  <p className="text-3xl font-bold text-blue-600">{results.water}L</p>
+                  <p className="text-sm text-gray-600 mt-1">por dia</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">Sugestões de Refeições</h2>
+              
+              <div className="space-y-6">
+                <div className="border-l-4 border-orange-500 pl-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Clock className="w-5 h-5 text-orange-600" />
+                    <h3 className="text-xl font-semibold text-gray-800">Café da Manhã</h3>
+                  </div>
+                  <ul className="space-y-2">
+                    {mealPlan.breakfast.map((meal, i) => (
+                      <li key={i} className="text-gray-700">• {meal}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="border-l-4 border-green-500 pl-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Clock className="w-5 h-5 text-green-600" />
+                    <h3 className="text-xl font-semibold text-gray-800">Almoço</h3>
+                  </div>
+                  <ul className="space-y-2">
+                    {mealPlan.lunch.map((meal, i) => (
+                      <li key={i} className="text-gray-700">• {meal}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="border-l-4 border-blue-500 pl-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Clock className="w-5 h-5 text-blue-600" />
+                    <h3 className="text-xl font-semibold text-gray-800">Lanche</h3>
+                  </div>
+                  <ul className="space-y-2">
+                    {mealPlan.snack.map((meal, i) => (
+                      <li key={i} className="text-gray-700">• {meal}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="border-l-4 border-purple-500 pl-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Clock className="w-5 h-5 text-purple-600" />
+                    <h3 className="text-xl font-semibold text-gray-800">Jantar</h3>
+                  </div>
+                  <ul className="space-y-2">
+                    {mealPlan.dinner.map((meal, i) => (
+                      <li key={i} className="text-gray-700">• {meal}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-xl p-8">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                {profile === 'athlete' ? 'Dicas para Atletas' : profile === 'active' ? 'Dicas para Pessoas Ativas' : 'Dicas para Iniciar uma Vida Saudável'}
+              </h2>
+              <div className="space-y-3 text-gray-700">
+                {profile === 'athlete' ? (
+                  <>
+                    <p>✓ <strong>Proteínas:</strong> Essenciais para manter massa muscular. Distribua ao longo do dia.</p>
+                    <p>✓ <strong>Hidratação:</strong> Beba água antes, durante e após o exercício.</p>
+                    <p>✓ <strong>Cálcio e Vitamina D:</strong> Importantes para saúde óssea. Considere suplementação se necessário.</p>
+                    <p>✓ <strong>Ômega 3:</strong> Ajuda na recuperação e reduz inflamação. Consuma peixes gordos 2-3x/semana.</p>
+                    <p>✓ <strong>Antioxidantes:</strong> Frutas e vegetais coloridos ajudam na recuperação.</p>
+                    <p>✓ <strong>Timing:</strong> Consuma proteína e carboidrato nas 2 horas após o treino.</p>
+                  </>
+                ) : profile === 'active' ? (
+                  <>
+                    <p>✓ <strong>Refeições balanceadas:</strong> Combine carboidratos, proteínas e gorduras saudáveis.</p>
+                    <p>✓ <strong>Hidratação:</strong> Beba pelo menos 2 litros de água por dia.</p>
+                    <p>✓ <strong>Proteínas:</strong> Inclua em todas as refeições para manter massa muscular.</p>
+                    <p>✓ <strong>Frutas e vegetais:</strong> Consuma pelo menos 5 porções diárias.</p>
+                    <p>✓ <strong>Lanches saudáveis:</strong> Tenha opções práticas para evitar escolhas ruins.</p>
+                    <p>✓ <strong>Consistência:</strong> Mantenha horários regulares para as refeições.</p>
+                  </>
+                ) : (
+                  <>
+                    <p>✓ <strong>Comece devagar:</strong> Pequenas mudanças sustentáveis são mais eficazes.</p>
+                    <p>✓ <strong>Água primeiro:</strong> Troque refrigerantes por água gradualmente.</p>
+                    <p>✓ <strong>Cozinhe em casa:</strong> Controle melhor os ingredientes e porções.</p>
+                    <p>✓ <strong>Reduza processados:</strong> Prefira alimentos naturais e integrais.</p>
+                    <p>✓ <strong>Não pule refeições:</strong> Isso pode levar a excessos depois.</p>
+                    <p>✓ <strong>Movimente-se:</strong> Comece com caminhadas de 10-15 minutos diárias.</p>
+                    <p>✓ <strong>Durma bem:</strong> O sono adequado é essencial para controlar o apetite.</p>
+                  </>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
